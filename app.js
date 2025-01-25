@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 3069;
 const corsOptions = {
   origin: "*",
   credentials: true,
@@ -13,6 +13,7 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 app.use("/api/auth", require("./authController"));
+app.use("/api/admin",require("./admin"));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

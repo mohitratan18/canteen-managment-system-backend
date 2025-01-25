@@ -4,13 +4,14 @@
   "description": "Node.js backend with Firebase and Express for authentication",
   "main": "app.js",
   "scripts": {
-    "start": "node app.js"
+    "start": "node app.js",
+     "lint": "eslint . --fix"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.7",
     "express": "^4.17.1",
-    "firebase-admin": "^8.12.0"
+    "firebase-admin": "^8.13.0"
   }
 }

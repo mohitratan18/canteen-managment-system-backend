@@ -1,21 +1,22 @@
-require('dotenv').config();
+require("dotenv").config();
 const admin = require("firebase-admin");
 const firebaseConfig = {
   credential: admin.credential.cert({
-    "type": process.env.FIREBASE_TYPE,
-    "project_id": process.env.FIREBASE_PROJECT_ID,
-    "private_key_id": process.env.FIREBASE_PRIVATE_KEY_ID,
-    "private_key": process.env.FIREBASE_PRIVATE_KEY,
-    "client_email": process.env.FIREBASE_CLIENT_EMAIL,
-    "client_id": process.env.FIREBASE_CLIENT_ID,
-    "auth_uri": process.env.FIREBASE_AUTH_URI,
-    "token_uri": process.env.FIREBASE_TOKEN_URI,
-    "auth_provider_x509_cert_url": process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
-    "client_x509_cert_url": process.env.FIREBASE_CLIENT_X509_CERT_URL,
-    "universe_domain": process.env.FIREBASE_UNIVERSE_DOMAIN
+    type: process.env.FIREBASE_TYPE,
+    project_id: process.env.FIREBASE_PROJECT_ID,
+    private_key_id: process.env.FIREBASE_PRIVATE_KEY_ID,
+    private_key: process.env.FIREBASE_PRIVATE_KEY,
+    client_email: process.env.FIREBASE_CLIENT_EMAIL,
+    client_id: process.env.FIREBASE_CLIENT_ID,
+    auth_uri: process.env.FIREBASE_AUTH_URI,
+    token_uri: process.env.FIREBASE_TOKEN_URI,
+    auth_provider_x509_cert_url:
+      process.env.FIREBASE_AUTH_PROVIDER_X509_CERT_URL,
+    client_x509_cert_url: process.env.FIREBASE_CLIENT_X509_CERT_URL,
+    universe_domain: process.env.FIREBASE_UNIVERSE_DOMAIN,
   }),
+  databaseURL: process.env.FIREBASE_DATABASE_URL,
 };
-
 
 admin.initializeApp(firebaseConfig);
 const router = require("express").Router();
@@ -86,39 +87,42 @@ router.post("/login", async (req, res) => {
 });
 
 router.post("/admin/login", async (req, res) => {
-    try {
-      const { email, password } = req.body;
-  
-      const db = admin.firestore();
-      const adminsRef = db.collection("Admin");
-      const snapshot = await adminsRef.where("email", "==", email).get();
-  
-      if (snapshot.empty) {
-        return res.status(401).json({ error: "Admin not found" });
-      }
+  try {
+    const { email, password } = req.body;
 
-      snapshot.forEach((doc) => {
-        const adminRecord = doc.data();
-        if (adminRecord.password === password) {
-          admin.auth().createCustomToken(doc.id)
-            .then((token) => {
-              res.status(200).json({ message: "Admin login successful", token, isAdmin:true });
-            })
-            .catch((error) => {
-              res.status(500).json({ error: error.message });
-            });
-  
-            return;
-  
-        }else {
-            return res.status(401).json({error: "Invalid Credentials"}) 
-        }
-      });
-  
-    } catch (error) {
-      res.status(500).json({ error: error.message });
+    const db = admin.firestore();
+    const adminsRef = db.collection("Admin");
+    const snapshot = await adminsRef.where("email", "==", email).get();
+
+    if (snapshot.empty) {
+      return res.status(401).json({ error: "Admin not found" });
     }
-  });
-  
+
+    snapshot.forEach((doc) => {
+      const adminRecord = doc.data();
+      if (adminRecord.password === password) {
+        admin
+          .auth()
+          .createCustomToken(doc.id)
+          .then((token) => {
+            res.status(200).json({
+              message: "Admin login successful",
+              token,
+              isAdmin: true,
+            });
+          })
+          .catch((error) => {
+            res.status(500).json({ error: error.message });
+          });
+
+        return;
+      } else {
+        return res.status(401).json({ error: "Invalid Credentials" });
+      }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 module.exports = router;
