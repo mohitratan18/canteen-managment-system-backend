@@ -14,6 +14,7 @@ app.use(bodyParser.json());
 
 app.use("/api/auth", require("./authController"));
 app.use("/api/admin",require("./admin"));
+app.use("/api/payment",require('./payment'));
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);

@@ -71,7 +71,7 @@ router.post("/login", async (req, res) => {
           .auth()
           .createCustomToken(doc.id)
           .then((token) => {
-            res.status(200).json({ message: "Login successful", token });
+            res.status(200).json({ message: "Login successful", token ,email});
           })
           .catch((error) => {
             res.status(500).json({ error: error.message });
