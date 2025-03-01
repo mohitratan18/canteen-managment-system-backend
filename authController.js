@@ -71,7 +71,7 @@ router.post("/login", async (req, res) => {
           .auth()
           .createCustomToken(doc.id)
           .then((token) => {
-            res.status(200).json({ message: "Login successful", token ,email});
+            res.status(200).json({ message: "Login successful", token, email });
           })
           .catch((error) => {
             res.status(500).json({ error: error.message });
@@ -122,6 +122,69 @@ router.post("/admin/login", async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
+  }
+});
+
+router.post("/addBill", async (req, res) => {
+  const { email, bill } = req.body;
+
+  try {
+    const db = admin.firestore();
+    const usersRef = db.collection("Users");
+    const snapshot = await usersRef.where("email", "==", email).get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userDoc = snapshot.docs[0];
+    const userId = userDoc.id;
+    let user = userDoc.data();
+
+    // Check if bills array exists, create it if not
+    if (!user.bills) {
+      user.bills = [];
+    }
+
+    // Add the new bill to the array.  You might want to add a timestamp or other metadata.
+    user.bills.push(bill);
+
+    // Update the user document in Firestore
+    await usersRef.doc(userId).update({ bills: user.bills });
+
+    res
+      .status(200)
+      .json({ message: "Bill added successfully", bills: user.bills });
+  } catch (error) {
+    console.error("Error adding bill:", error);
+    res.status(500).json({ error: "Failed to add bill" });
+  }
+});
+
+router.post("/getUserBills", async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const db = admin.firestore();
+    const usersRef = db.collection("Users");
+    const snapshot = await usersRef.where("email", "==", email).get();
+
+    if (snapshot.empty) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const userDoc = snapshot.docs[0];
+    const user = userDoc.data();
+
+    // Check if the user has bills
+    if (!user.bills) {
+      return res.status(200).json({ bills: [] }); // Return an empty array if no bills
+    }
+
+    res.status(200).json({ bills: user.bills });
+  } catch (error) {
+    console.error("Error getting user bills:", error);
+    res.status(500).json({ error: "Failed to get user bills" });
   }
 });
 
