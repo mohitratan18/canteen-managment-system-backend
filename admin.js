@@ -66,7 +66,6 @@ router.get("/getItems", async (req, res) => {
   }
 });
 
-
 router.post("/toogleAvailability", async (req, res) => {
   const itemId = req?.body?.id;
   try {
@@ -137,6 +136,40 @@ router.post("/updateItem", async (req, res) => {
     res
       .status(500)
       .json({ message: "Error updating item", error: error.message });
+  }
+});
+
+router.post("/addbills", async (req, res) => {
+  const { bill } = req.body;
+
+  try {
+    const db = admin.firestore();
+    const billsRef = db.collection("bills");
+    const newBillRef = await billsRef.add(bill);
+    res
+      .status(201)
+      .json({ message: "Bill added successfully", billId: newBillRef.id });
+  } catch (error) {
+    console.error("Error adding bill to Firebase:", error);
+    res
+      .status(500)
+      .json({ message: "Error adding bill", error: error.message });
+  }
+});
+
+router.get("/getbills", async (req, res) => {
+  try {
+    const db = admin.firestore();
+    const billsSnapshot = await db.collection("bills").get();
+    const bills = billsSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })); // Convert Firestore documents to plain objects
+    console.log(billsSnapshot.docs[0]);
+    res.json(bills);
+  } catch (error) {
+    console.error("Error fetching bills:", error);
+    res.status(500).json({ error: "Failed to fetch bills" });
   }
 });
 
