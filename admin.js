@@ -165,11 +165,73 @@ router.get("/getbills", async (req, res) => {
       id: doc.id,
       ...doc.data(),
     })); // Convert Firestore documents to plain objects
-    console.log(billsSnapshot.docs[0]);
+    // console.log(billsSnapshot.docs[0]);
     res.json(bills);
   } catch (error) {
     console.error("Error fetching bills:", error);
     res.status(500).json({ error: "Failed to fetch bills" });
+  }
+});
+
+router.get("/getSales", async (req, res) => {
+  const date = new Date(Date.now());
+  const today = date.toDateString();
+  const salesData = [];
+
+  try {
+    const db = admin.firestore();
+    const bills = await db.collection("bills").get();
+
+    const billsSnapshot = bills.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+
+    let sales = 0;
+    let totalOrders =0;
+    billsSnapshot.forEach((bill) => {
+      let billCreatedAtDate = new Date(bill.createdAt).toDateString();
+      if (billCreatedAtDate === today) {
+        totalOrders++;
+        sales += bill.total;
+      }
+    });
+
+    //Fetch last 6 days sales
+    for (let i = 0; i < 6; i++) {
+      const pastDate = new Date();
+      pastDate.setDate(date.getDate() - i);
+      const day = String(pastDate.getDate()).padStart(2, "0");
+      const month = String(pastDate.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed
+      const year = pastDate.getFullYear();
+      const formattedDate = `${month}-${day}-${year}`;
+
+      let dailySales = 0;
+      billsSnapshot.forEach((bill) => {
+        let billCreatedAtDate = new Date(bill.createdAt).toDateString();
+        const billDay = String(new Date(bill.createdAt).getDate()).padStart(
+          2,
+          "0"
+        );
+        const billMonth = String(
+          new Date(bill.createdAt).getMonth() + 1
+        ).padStart(2, "0");
+        const billYear = new Date(bill.createdAt).getFullYear();
+        const formattedBillDate = `${billMonth}-${billDay}-${billYear}`;
+
+        if (formattedBillDate === formattedDate) {
+          dailySales += bill.total;
+        }
+      });
+      salesData.push({ date: formattedDate, sales: dailySales });
+    }
+
+    salesData.reverse(); // Reverse to show most recent date first
+
+    res.json({ todaySales: sales, salesData ,totalOrders });
+  } catch (error) {
+    console.error("Error fetching sales data:", error);
+    res.status(500).json({ error: "Failed to fetch sales data" });
   }
 });
 
