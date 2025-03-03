@@ -177,6 +177,7 @@ router.get("/getSales", async (req, res) => {
   const date = new Date(Date.now());
   const today = date.toDateString();
   const salesData = [];
+  let monthlySales = 0;
 
   try {
     const db = admin.firestore();
@@ -188,7 +189,7 @@ router.get("/getSales", async (req, res) => {
     }));
 
     let sales = 0;
-    let totalOrders =0;
+    let totalOrders = 0;
     billsSnapshot.forEach((bill) => {
       let billCreatedAtDate = new Date(bill.createdAt).toDateString();
       if (billCreatedAtDate === today) {
@@ -197,27 +198,24 @@ router.get("/getSales", async (req, res) => {
       }
     });
 
-    //Fetch last 6 days sales
+    // Fetch last 6 days sales
     for (let i = 0; i < 6; i++) {
       const pastDate = new Date();
       pastDate.setDate(date.getDate() - i);
-      const day = String(pastDate.getDate()).padStart(2, "0");
-      const month = String(pastDate.getMonth() + 1).padStart(2, "0"); // Month is 0-indexed
-      const year = pastDate.getFullYear();
-      const formattedDate = `${month}-${day}-${year}`;
+      const formattedDate = pastDate.toLocaleDateString("en-US", {
+        month: "2-digit",
+        day: "2-digit",
+        year: "numeric",
+      });
 
       let dailySales = 0;
       billsSnapshot.forEach((bill) => {
-        let billCreatedAtDate = new Date(bill.createdAt).toDateString();
-        const billDay = String(new Date(bill.createdAt).getDate()).padStart(
-          2,
-          "0"
-        );
-        const billMonth = String(
-          new Date(bill.createdAt).getMonth() + 1
-        ).padStart(2, "0");
-        const billYear = new Date(bill.createdAt).getFullYear();
-        const formattedBillDate = `${billMonth}-${billDay}-${billYear}`;
+        const billDate = new Date(bill.createdAt);
+        const formattedBillDate = billDate.toLocaleDateString("en-US", {
+          month: "2-digit",
+          day: "2-digit",
+          year: "numeric",
+        });
 
         if (formattedBillDate === formattedDate) {
           dailySales += bill.total;
@@ -228,7 +226,25 @@ router.get("/getSales", async (req, res) => {
 
     salesData.reverse(); // Reverse to show most recent date first
 
-    res.json({ todaySales: sales, salesData ,totalOrders });
+    // Calculate sales for the current month
+    const currentMonth = date.toLocaleDateString("en-US", {
+      month: "2-digit",
+      year: "numeric",
+    });
+
+    billsSnapshot.forEach((bill) => {
+      const billDate = new Date(bill.createdAt);
+      const formattedBillMonth = billDate.toLocaleDateString("en-US", {
+        month: "2-digit",
+        year: "numeric",
+      });
+
+      if (formattedBillMonth === currentMonth) {
+        monthlySales += bill.total;
+      }
+    });
+
+    res.json({ todaySales: sales, salesData, monthlySales, totalOrders });
   } catch (error) {
     console.error("Error fetching sales data:", error);
     res.status(500).json({ error: "Failed to fetch sales data" });
