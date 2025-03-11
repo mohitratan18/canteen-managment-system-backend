@@ -251,4 +251,31 @@ router.get("/getSales", async (req, res) => {
   }
 });
 
+router.post("/changeStatus", async (req, res) => {
+  const { id } = req.body; // This is the `id` inside the bill document, not Firestore's auto-assigned ID
+
+  try {
+    const db = admin.firestore();
+
+    const billsRef = db.collection("bills");
+    const querySnapshot = await billsRef.where("id", "==", id).get();
+
+    if (querySnapshot.empty) {
+      return res.status(404).json({ error: "Bill not found" });
+    }
+
+    // Assuming `id` is unique, there should be only one document in the query result
+    const billDoc = querySnapshot.docs[0].ref;
+
+    await billDoc.update({ status: "paid" });
+
+    res.json({ message: "Bill status updated successfully" });
+  } catch (error) {
+    console.error("Error updating bill status:", error);
+    res
+      .status(500)
+      .json({ error: "Failed to update bill status", details: error.message });
+  }
+});
+  
 module.exports = router;
