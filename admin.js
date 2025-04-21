@@ -278,6 +278,28 @@ router.post("/changeStatus", async (req, res) => {
   }
 });
 
+router.get("/feedback", async (req, res) => {
+  try {
+    const db = admin.firestore();
+    const feedbackSnapshot = await db.collection("feedback")
+      .orderBy("createdAt", "desc")
+      .get();
+
+    const feedbacks = feedbackSnapshot.docs.map(doc => ({
+      ...doc.data(),
+      docId: doc.id
+    }));
+
+    res.status(200).json(feedbacks);
+  } catch (error) {
+    console.error("Error fetching feedback:", error);
+    res.status(500).json({ 
+      message: "Error fetching feedback", 
+      error: error.message 
+    });
+  }
+});
+
 router.post("/feedback", async (req, res) => {
   const { id, userId, content, rating, improvement } = req.body;
 
