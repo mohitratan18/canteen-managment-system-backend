@@ -277,5 +277,66 @@ router.post("/changeStatus", async (req, res) => {
       .json({ error: "Failed to update bill status", details: error.message });
   }
 });
-  
+
+router.get("/feedback", async (req, res) => {
+  try {
+    const db = admin.firestore();
+    const feedbackSnapshot = await db.collection("feedback")
+      .orderBy("createdAt", "desc")
+      .get();
+
+    const feedbacks = feedbackSnapshot.docs.map(doc => ({
+      ...doc.data(),
+      docId: doc.id
+    }));
+
+    res.status(200).json(feedbacks);
+  } catch (error) {
+    console.error("Error fetching feedback:", error);
+    res.status(500).json({ 
+      message: "Error fetching feedback", 
+      error: error.message 
+    });
+  }
+});
+
+router.post("/feedback", async (req, res) => {
+  const { id, userId, content, rating, improvement } = req.body;
+
+  try {
+    // Validate required fields
+    if (!userId || !content || !rating) {
+      return res.status(400).json({ message: "Required fields are missing" });
+    }
+
+    // Create feedback object
+    const feedbackData = {
+      id: id || Date.now().toString(), // Use provided ID or generate timestamp-based ID
+      userId,
+      content,
+      rating: Number(rating),
+      improvement: improvement || "",
+      createdAt: new Date().toISOString()
+    };
+
+    // Store in Firestore
+    const db = admin.firestore();
+    const feedbackRef = db.collection("feedback");
+    await feedbackRef.add(feedbackData);
+
+    res.status(201).json({ 
+      message: "Feedback submitted successfully",
+      feedback: feedbackData 
+    });
+  } catch (error) {
+    console.error("Error submitting feedback:", error);
+    res.status(500).json({ 
+      message: "Error submitting feedback", 
+      error: error.message 
+    });
+  }
+});
+
+
+
 module.exports = router;
