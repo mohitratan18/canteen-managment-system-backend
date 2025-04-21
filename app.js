@@ -4,11 +4,11 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3069;
 const corsOptions = {
-  origin: '*', // Allow requests from React development server
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-  credentials: true, // Allow credentials (cookies, authorization headers)
-  optionsSuccessStatus: 200 // Some legacy browsers (IE11) choke on 204
+  origin: ['*','http://localhost:3000', 'https://canteen-managment-system-backend.onrender.com'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-client-id', 'x-client-secret', 'x-api-version'],
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
