@@ -160,7 +160,9 @@ router.post("/addbills", async (req, res) => {
 router.get("/getbills", async (req, res) => {
   try {
     const db = admin.firestore();
-    const billsSnapshot = await db.collection("bills").get();
+    const billsSnapshot = await db.collection("bills")
+      .orderBy("createdAt", "desc") // Order by createdAt timestamp in descending order
+      .get();
     const bills = billsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
