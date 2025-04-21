@@ -4,9 +4,11 @@ const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3069;
 const corsOptions = {
-  origin: "*",
+  origin: ['http://localhost:3000', 'https://canteen-managment.vercel.app','*'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-client-id', 'x-client-secret', 'x-api-version'],
   credentials: true,
-  optionSuccessStatus: 200,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));

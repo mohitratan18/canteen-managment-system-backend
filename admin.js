@@ -160,9 +160,7 @@ router.post("/addbills", async (req, res) => {
 router.get("/getbills", async (req, res) => {
   try {
     const db = admin.firestore();
-    const billsSnapshot = await db.collection("bills")
-      .orderBy("createdAt", "desc") // Order by createdAt timestamp in descending order
-      .get();
+    const billsSnapshot = await db.collection("bills").get();
     const bills = billsSnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -277,28 +275,6 @@ router.post("/changeStatus", async (req, res) => {
     res
       .status(500)
       .json({ error: "Failed to update bill status", details: error.message });
-  }
-});
-
-router.get("/feedback", async (req, res) => {
-  try {
-    const db = admin.firestore();
-    const feedbackSnapshot = await db.collection("feedback")
-      .orderBy("createdAt", "desc")
-      .get();
-
-    const feedbacks = feedbackSnapshot.docs.map(doc => ({
-      ...doc.data(),
-      docId: doc.id
-    }));
-
-    res.status(200).json(feedbacks);
-  } catch (error) {
-    console.error("Error fetching feedback:", error);
-    res.status(500).json({ 
-      message: "Error fetching feedback", 
-      error: error.message 
-    });
   }
 });
 
